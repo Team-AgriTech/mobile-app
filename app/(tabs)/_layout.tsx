@@ -38,7 +38,16 @@ export default function TabLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'About',
+          title: 'dashboard',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="speedometer-outline" size={size ?? 24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="about"
+        options={{
+          title: 'about',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="speedometer-outline" size={size ?? 24} color={color} />
           ),
