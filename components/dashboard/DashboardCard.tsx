@@ -1,9 +1,9 @@
-import React from 'react';
-import { StyleSheet, RefreshControl, ScrollView, ActivityIndicator } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { StationOverview } from '@/components/dashboard/StationOverview';
 import { useStationData } from '@/hooks/useStationData';
+import React from 'react';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 
 export default function DashboardScreen() {
   const { data, loading, error, lastUpdated, refresh } = useStationData();
