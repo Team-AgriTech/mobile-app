@@ -1,10 +1,11 @@
+import { GraphCard } from '@/components/dashboard/Chart';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useAIInsights } from '@/hooks/useAIInsights';
 import { AIInsightResponse, StationData } from '@/services/types';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AIInsightsModal } from './AIInsightsModal';
 import { InsightCard } from './InsightCard';
 
@@ -51,9 +52,9 @@ export function StationOverview({ station }: StationOverviewProps) {
     <ThemedView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.stationInfo}>
-          <ThemedText type="title">{station.station_id}</ThemedText>
+          <ThemedText type="title" style = {styles.stationTitle} >{station.station_id}</ThemedText>
           <ThemedText style={styles.timestamp}>
-            {new Date(station.timestamp).toLocaleString()}
+            Updated: {new Date(station.timestamp).toLocaleString()}
           </ThemedText>
         </View>
         
@@ -62,12 +63,14 @@ export function StationOverview({ station }: StationOverviewProps) {
           onPress={handleConsultAI}
           disabled={loading}
         >
-          <Ionicons name="sparkles" size={20} color="white" />
+          <Ionicons name="sparkles" size={16} color="white" />
           <ThemedText style={styles.aiButtonText}>Consult AI</ThemedText>
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <GraphCard/>
+
+      <View style={styles.grid}>
         <InsightCard
           title="Air Quality"
           value={station.insights.air_quality}
@@ -76,14 +79,14 @@ export function StationOverview({ station }: StationOverviewProps) {
         />
         
         <InsightCard
-          title="Soil Condition"
+          title="Moisture"
           value={station.insights.soil_condition}
           icon="earth-outline"
           type={getInsightType(station.insights.soil_condition)}
         />
         
         <InsightCard
-          title="Water pH Status"
+          title="pH Status"
           value={station.insights.water_ph_status}
           icon="water-outline"
           type={getInsightType(station.insights.water_ph_status)}
@@ -102,7 +105,7 @@ export function StationOverview({ station }: StationOverviewProps) {
           icon="rainy-outline"
           type={getInsightType(station.insights.humidity_status)}
         />
-      </ScrollView>
+      </View>
 
       <AIInsightsModal
         visible={showAIModal}
@@ -117,6 +120,12 @@ export function StationOverview({ station }: StationOverviewProps) {
 }
 
 const styles = StyleSheet.create({
+  grid: {
+    // flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
   container: {
     flex: 1,
     padding: 16,
@@ -151,6 +160,11 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '600',
     marginLeft: 6,
-    fontSize: 14,
+    fontSize: 12,
+  },
+  stationTitle: {
+    fontSize: 25,
+    fontWeight: 'bold',
+    textTransform:'capitalize'
   },
 });
