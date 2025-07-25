@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 
 interface StatusIndicatorProps {
   status: string;
@@ -8,42 +8,47 @@ interface StatusIndicatorProps {
 }
 
 export function StatusIndicator({ status, type }: StatusIndicatorProps) {
-  const getStatusColor = () => {
-    switch (type) {
-      case 'good': return '#4CAF50';
-      case 'moderate': return '#FF9800';
-      case 'warning': return '#FFC107';
-      case 'danger': return '#F44336';
-      default: return '#9E9E9E';
-    }
+  const colorMap = {
+    good: {
+      text: '#065F46',      // dark green
+      background: '#D1FAE5', // green-100
+    },
+    moderate: {
+      text: '#92400E',       // dark amber
+      background: '#FEF3C7', // amber-100
+    },
+    warning: {
+      text: '#9A3412',       // dark orange
+      background: '#FFEDD5', // orange-100
+    },
+    danger: {
+      text: '#7F1D1D',       // dark red
+      background: '#FECACA', // red-100
+    },
+    default: {
+      text: '#374151',       // gray-700
+      background: '#E5E7EB', // gray-200
+    },
   };
 
+  const { text, background } = colorMap[type] || colorMap.default;
+
   return (
-    <View style={[styles.indicator, { borderLeftColor: getStatusColor() }]}>
-      <View style={[styles.dot, { backgroundColor: getStatusColor() }]} />
-      <ThemedText style={styles.statusText}>{status}</ThemedText>
+    <View style={[styles.badge, { backgroundColor: background }]}>
+      <ThemedText style={[styles.statusText, { color: text }]}>{status}</ThemedText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  indicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    borderLeftWidth: 4,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 4,
-    marginVertical: 2,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 8,
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
   },
   statusText: {
-    fontSize: 14,
-    flex: 1,
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
