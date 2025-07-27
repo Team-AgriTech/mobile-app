@@ -10,7 +10,7 @@ export default function HomeScreen() {
     <ThemedView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <ThemedText type="title" style={styles.appTitle}>AgriTech</ThemedText>
+        <ThemedText type="title" style={styles.appTitle}>Agri-Tech</ThemedText>
         <TouchableOpacity style={styles.notificationButton} activeOpacity={0.7}>
           <Ionicons name="notifications-outline" size={24} color="#007AFF" />
         </TouchableOpacity>
@@ -20,7 +20,7 @@ export default function HomeScreen() {
         {/* Welcome Card */}
         <View style={styles.welcomeCard}>
           <ThemedText type="title" style={styles.welcomeTitle}>
-            Welcome to AgriTech!
+            Welcome to Agri-Tech🌿
           </ThemedText>
           <ThemedText type="default" style={styles.welcomeSubtitle}>
             Monitor your farm stations in real-time and get meaningful insights.
