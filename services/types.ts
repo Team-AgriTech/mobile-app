@@ -1,14 +1,19 @@
+export interface SensorData {
+  gas_level: number;
+  humidity: number;
+  light_intensity: number;
+  ph_value: number;
+  soil_moisture: number;
+  soil_temperature: number;
+  temperature: number;
+}
+
 export interface StationData {
-  station_id: string;
+  _id: string;
+  data: SensorData;
+  device_id: string;
+  prediction: number;
   timestamp: string;
-  insights: {
-    air_quality: string;
-    soil_condition: string;
-    water_ph_status: string;
-    temperature_status: string;
-    humidity_status: string;
-    suggestion: string;
-  };
 }
 
 export interface ApiResponse {

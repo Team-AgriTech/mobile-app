@@ -1,14 +1,14 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { StationOverview } from '@/components/dashboard/StationOverview';
-import { useStationData } from '@/hooks/useStationData';
+import { useCurrentStationData } from '@/hooks/useCurrentStationData';
 import React from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 
 export default function DashboardScreen() {
-  const { data, loading, error, lastUpdated, refresh } = useStationData();
+  const { currentData, uniqueStations, loading, error, lastUpdated, refresh } = useCurrentStationData();
 
-  if (loading && data.length === 0) {
+  if (loading && !currentData) {
     return (
       <ThemedView style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#007AFF" />
@@ -17,11 +17,20 @@ export default function DashboardScreen() {
     );
   }
 
-  if (error && data.length === 0) {
+  if (error && !currentData) {
     return (
       <ThemedView style={styles.centerContainer}>
         <ThemedText type="title">Error</ThemedText>
         <ThemedText>{error}</ThemedText>
+      </ThemedView>
+    );
+  }
+
+  if (!currentData) {
+    return (
+      <ThemedView style={styles.centerContainer}>
+        <ThemedText type="title">No Data</ThemedText>
+        <ThemedText>No current station data available</ThemedText>
       </ThemedView>
     );
   }
@@ -43,8 +52,13 @@ export default function DashboardScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {data.map((station) => (
-          <StationOverview key={station.station_id} station={station} />
+        {/* Show one StationOverview per unique station */}
+        {uniqueStations.map((stationId) => (
+          <StationOverview 
+            key={stationId} 
+            currentStationData={currentData}
+            stationId={stationId}
+          />
         ))}
       </ScrollView>
     </ThemedView>

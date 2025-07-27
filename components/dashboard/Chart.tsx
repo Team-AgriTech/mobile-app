@@ -1,50 +1,26 @@
 import { ThemedText } from "@/components/ThemedText";
+import { StationData } from "@/services/types";
 import { Picker } from "@react-native-picker/picker";
 import React, { useState } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Dimensions, StyleSheet, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 
 const screenWidth = Dimensions.get("window").width;
 
-const dummyData = {
-  temperature: [
-    { time: "10:00", value: 22 },
-    { time: "11:00", value: 24 },
-    { time: "12:00", value: 23 },
-    { time: "13:00", value: 26 },
-    { time: "14:00", value: 25 },
-  ],
-  humidity: [
-    { time: "10:00", value: 45 },
-    { time: "11:00", value: 50 },
-    { time: "12:00", value: 48 },
-    { time: "13:00", value: 55 },
-    { time: "14:00", value: 52 },
-  ],
-  ph: [
-    { time: "10:00", value: 6.2 },
-    { time: "11:00", value: 6.5 },
-    { time: "12:00", value: 6.7 },
-    { time: "13:00", value: 6.3 },
-    { time: "14:00", value: 6.4 },
-  ],
-  moisture: [
-    { time: "10:00", value: 30 },
-    { time: "11:00", value: 32 },
-    { time: "12:00", value: 34 },
-    { time: "13:00", value: 33 },
-    { time: "14:00", value: 31 },
-  ],
-};
+interface GraphCardProps {
+  historicalData: StationData[];
+  loading: boolean;
+  stationId: string;
+}
 
 const chartConfig = {
   backgroundGradientFrom: "#ffffff",
   backgroundGradientTo: "#ffffff",
   decimalPlaces: 1,
-  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Tailwind blue-500
-  labelColor: (opacity = 1) => `rgba(55, 65, 81, ${opacity})`, // Tailwind gray-700
+  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+  labelColor: (opacity = 1) => `rgba(55, 65, 81, ${opacity})`,
   propsForDots: {
-    r: "5",
+    r: "4",
     strokeWidth: "2",
     stroke: "#2563EB",
   },
@@ -53,57 +29,131 @@ const chartConfig = {
   },
 };
 
-export function GraphCard() {
-  const [selected, setSelected] =
-    useState<keyof typeof dummyData>("temperature");
-  const selectedData = dummyData[selected];
+export function GraphCard({ historicalData, loading, stationId }: GraphCardProps) {
+  const [selected, setSelected] = useState<string>("temperature");
+
+  const getParameterData = () => {
+    if (!historicalData || historicalData.length === 0) {
+      return [];
+    }
+
+    // Get the last 10 data points for better visualization
+    const recentData = historicalData.slice(-10);
+
+    return recentData.map(station => {
+      const time = new Date(station.timestamp).toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+
+      let value = 0;
+      switch (selected) {
+        case "temperature":
+          value = station.data.temperature;
+          break;
+        case "humidity":
+          value = station.data.humidity;
+          break;
+        case "ph":
+          value = station.data.ph_value;
+          break;
+        case "moisture":
+          value = station.data.soil_moisture;
+          break;
+        case "gas_level":
+          value = station.data.gas_level;
+          break;
+        case "light_intensity":
+          value = station.data.light_intensity;
+          break;
+        default:
+          value = 0;
+      }
+
+      return { time, value };
+    });
+  };
+
+  const selectedData = getParameterData();
 
   const chartData = {
     labels: selectedData.map((d) => d.time),
     datasets: [
       {
-        data: selectedData.map((d) => d.value),
+        data: selectedData.length > 0 ? selectedData.map((d) => d.value) : [0],
         color: () => "#3B82F6",
       },
     ],
-    legend: [selected.toUpperCase()],
+    legend: [selected.toUpperCase().replace('_', ' ')],
   };
+
+  const parameterOptions = [
+    { key: "temperature", label: "Temperature (°C)" },
+    { key: "humidity", label: "Humidity (%)" },
+    { key: "ph", label: "pH Level" },
+    { key: "moisture", label: "Soil Moisture" },
+    { key: "gas_level", label: "Gas Level (ppm)" },
+    { key: "light_intensity", label: "Light Intensity (lux)" },
+  ];
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ThemedText type="title" style={styles.title}>
+          Historical Trends - {stationId}
+        </ThemedText>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <ThemedText style={styles.loadingText}>Loading historical data...</ThemedText>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <ThemedText type="title" style={styles.title}>
-        Sensor Graph
+        Historical Trends - {stationId}
       </ThemedText>
 
       <View style={styles.dropdownContainer}>
-  <ThemedText style={styles.dropdownLabel}>Select Parameter:</ThemedText>
-  <View style={styles.pickerWrapper}>
-    <Picker
-      selectedValue={selected}
-      onValueChange={(val) => setSelected(val)}
-      style={styles.picker}
-      dropdownIconColor="#6B7280"
-      mode="dropdown" // Use 'dropdown' instead of 'dialog'
-    >
-      {Object.keys(dummyData).map((key) => (
-        <Picker.Item key={key} label={key.toUpperCase()} value={key} />
-      ))}
-    </Picker>
-  </View>
-</View>
+        <ThemedText style={styles.dropdownLabel}>Select Parameter:</ThemedText>
+        <View style={styles.pickerWrapper}>
+          <Picker
+            selectedValue={selected}
+            onValueChange={(val) => setSelected(val)}
+            style={styles.picker}
+            dropdownIconColor="#6B7280"
+            mode="dropdown"
+          >
+            {parameterOptions.map((option) => (
+              <Picker.Item key={option.key} label={option.label} value={option.key} />
+            ))}
+          </Picker>
+        </View>
+      </View>
 
+      {selectedData.length > 0 ? (
+        <LineChart
+          data={chartData}
+          width={screenWidth - 32}
+          height={260}
+          chartConfig={chartConfig}
+          bezier
+          withVerticalLabels={true}
+          withHorizontalLabels={true}
+          withShadow={false}
+          style={styles.chart}
+        />
+      ) : (
+        <View style={styles.noDataContainer}>
+          <ThemedText style={styles.noDataText}>No historical data available</ThemedText>
+        </View>
+      )}
 
-      <LineChart
-        data={chartData}
-        width={screenWidth - 32} // fits perfectly inside padding
-        height={260}
-        chartConfig={chartConfig}
-        bezier
-        withVerticalLabels={true}
-        withHorizontalLabels={true}
-        withShadow={false}
-        style={styles.chart}
-      />
+      <ThemedText style={styles.dataInfo}>
+        Showing last {selectedData.length} data points
+      </ThemedText>
     </View>
   );
 }
@@ -126,30 +176,47 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     marginBottom: 20,
   },
-
   dropdownLabel: {
     fontSize: 14,
-    color: "#4B5563", // gray-600
+    color: "#4B5563",
     fontWeight: "500",
     marginBottom: 6,
-    outline: "none",
   },
-
   pickerWrapper: {
-    backgroundColor: "#F3F4F6", // gray-100
+    backgroundColor: "#F3F4F6",
     borderRadius: 12,
-    borderWidth: 4,
-    borderColor: "#D1D5DB", // gray-300
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
     overflow: "hidden",
-    // height: 48,
     justifyContent: "center",
   },
-
   picker: {
-    color: "#111827", // gray-900
+    color: "#111827",
     fontSize: 16,
-    // outline: "none",
     paddingHorizontal: 12,
-    // height: 48,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#6B7280',
+  },
+  noDataContainer: {
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+  },
+  noDataText: {
+    color: '#6B7280',
+    fontSize: 14,
+  },
+  dataInfo: {
+    marginTop: 10,
+    fontSize: 12,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
 });
