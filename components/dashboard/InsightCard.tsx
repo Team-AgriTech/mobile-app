@@ -1,5 +1,6 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -8,12 +9,14 @@ import { StatusIndicator } from './StatusIndicator';
 interface InsightCardProps {
   title: string;
   value: string;
+  message: string;
   icon: keyof typeof Ionicons.glyphMap;
   type: 'good' | 'moderate' | 'warning' | 'danger';
 }
 
+export function InsightCard({ title, value, message, icon, type }: InsightCardProps) {
+  const { t } = useLanguage();
 
-export function InsightCard({ title, value, icon, type }: InsightCardProps) {
   return (
     <ThemedView style={[styles.card]}>
       <View style={styles.header}>
@@ -22,7 +25,13 @@ export function InsightCard({ title, value, icon, type }: InsightCardProps) {
           {title}
         </ThemedText>
       </View>
-      <StatusIndicator status={value} type={type} />
+      <ThemedText type="title" style={styles.value}>
+        {value}
+      </ThemedText>
+      <ThemedText style={[styles.message, { color: getMessageColor(type) }]}>
+        {message}
+      </ThemedText>
+      <StatusIndicator status={t(`status.${type}`)} type={type} />
     </ThemedView>
   );
 }
@@ -42,14 +51,28 @@ const getIconColor = (type: InsightCardProps['type']) => {
   }
 };
 
+const getMessageColor = (type: InsightCardProps['type']) => {
+  switch (type) {
+    case 'good':
+      return '#059669';
+    case 'moderate':
+      return '#D97706';
+    case 'warning':
+      return '#EA580C';
+    case 'danger':
+      return '#DC2626';
+    default:
+      return '#6B7280';
+  }
+};
+
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    maxWidth: '48%', // Adjust width for two cards per row
+    maxWidth: '48%',
     padding: 16,
     marginBottom: 16,
-    // marginRight: 16, // allows spacing between cards
     borderWidth: 1,
     borderColor: '#E5E7EB',
     shadowColor: '#000',
@@ -71,5 +94,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#111827',
     flexShrink: 1,
+  },
+  value: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    color: '#1F2937',
+  },
+  message: {
+    fontSize: 12,
+    marginBottom: 8,
+    lineHeight: 16,
   },
 });

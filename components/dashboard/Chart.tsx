@@ -1,4 +1,5 @@
 import { ThemedText } from "@/components/ThemedText";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { StationData } from "@/services/types";
 import { Picker } from "@react-native-picker/picker";
 import React, { useState } from "react";
@@ -31,6 +32,7 @@ const chartConfig = {
 
 export function GraphCard({ historicalData, loading, stationId }: GraphCardProps) {
   const [selected, setSelected] = useState<string>("temperature");
+  const { t } = useLanguage();
 
   const getParameterData = () => {
     if (!historicalData || historicalData.length === 0) {
@@ -84,27 +86,27 @@ export function GraphCard({ historicalData, loading, stationId }: GraphCardProps
         color: () => "#3B82F6",
       },
     ],
-    legend: [selected.toUpperCase().replace('_', ' ')],
+    legend: [t(`chart.legend.${selected}`)],
   };
 
   const parameterOptions = [
-    { key: "temperature", label: "Temperature (°C)" },
-    { key: "humidity", label: "Humidity (%)" },
-    { key: "ph", label: "pH Level" },
-    { key: "moisture", label: "Soil Moisture" },
-    { key: "gas_level", label: "Gas Level (ppm)" },
-    { key: "light_intensity", label: "Light Intensity (lux)" },
+    { key: "temperature", label: t('chart.parameter.temperature') },
+    { key: "humidity", label: t('chart.parameter.humidity') },
+    { key: "ph", label: t('chart.parameter.ph') },
+    { key: "moisture", label: t('chart.parameter.moisture') },
+    { key: "gas_level", label: t('chart.parameter.gas_level') },
+    { key: "light_intensity", label: t('chart.parameter.light_intensity') },
   ];
 
   if (loading) {
     return (
       <View style={styles.container}>
         <ThemedText type="title" style={styles.title}>
-          Historical Trends - {stationId}
+          {t('chart.title')} - {stationId}
         </ThemedText>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <ThemedText style={styles.loadingText}>Loading historical data...</ThemedText>
+          <ThemedText style={styles.loadingText}>{t('chart.loading')}</ThemedText>
         </View>
       </View>
     );
@@ -113,11 +115,11 @@ export function GraphCard({ historicalData, loading, stationId }: GraphCardProps
   return (
     <View style={styles.container}>
       <ThemedText type="title" style={styles.title}>
-        Historical Trends - {stationId}
+        {t('chart.title')} - {stationId}
       </ThemedText>
 
       <View style={styles.dropdownContainer}>
-        <ThemedText style={styles.dropdownLabel}>Select Parameter:</ThemedText>
+        <ThemedText style={styles.dropdownLabel}>{t('chart.select_parameter')}:</ThemedText>
         <View style={styles.pickerWrapper}>
           <Picker
             selectedValue={selected}
@@ -147,12 +149,12 @@ export function GraphCard({ historicalData, loading, stationId }: GraphCardProps
         />
       ) : (
         <View style={styles.noDataContainer}>
-          <ThemedText style={styles.noDataText}>No historical data available</ThemedText>
+          <ThemedText style={styles.noDataText}>{t('chart.no_data')}</ThemedText>
         </View>
       )}
 
       <ThemedText style={styles.dataInfo}>
-        Showing last {selectedData.length} data points
+        {t('chart.showing_points', { count: selectedData.length })}
       </ThemedText>
     </View>
   );

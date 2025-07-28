@@ -1,6 +1,7 @@
 import { GraphCard } from '@/components/dashboard/Chart';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useHistoricalData } from '@/hooks/useHistoricalData';
 import { StationData } from '@/services/types';
 import { SensorEvaluator } from '@/utils/sensorEvaluator';
@@ -16,11 +17,10 @@ interface StationOverviewProps {
 }
 
 export function StationOverview({ currentStationData, stationId }: StationOverviewProps) {
-  // Get historical data for charts
+  const { t } = useLanguage();
   const { historicalData, loading: historyLoading } = useHistoricalData(stationId);
 
   const handleConsultAI = async () => {
-    // Navigate to chat tab and pass station data
     router.push({
       pathname: '/chat',
       params: {
@@ -46,10 +46,10 @@ export function StationOverview({ currentStationData, stationId }: StationOvervi
             {currentStationData.device_id}
           </ThemedText>
           <ThemedText style={styles.timestamp}>
-            Updated: {new Date(currentStationData.timestamp).toLocaleString()}
+            {t('dashboard.updated')}: {new Date(currentStationData.timestamp).toLocaleString()}
           </ThemedText>
           <ThemedText style={styles.prediction}>
-            Prediction Score: {currentStationData.prediction}%
+            {t('dashboard.prediction_score')}: {currentStationData.prediction}%
           </ThemedText>
         </View>
         
@@ -58,7 +58,7 @@ export function StationOverview({ currentStationData, stationId }: StationOvervi
           onPress={handleConsultAI}
         >
           <Ionicons name="sparkles" size={16} color="white" />
-          <ThemedText style={styles.aiButtonText}>Consult AI</ThemedText>
+          <ThemedText style={styles.aiButtonText}>{t('dashboard.consult_ai')}</ThemedText>
         </TouchableOpacity>
       </View>
 
@@ -72,49 +72,49 @@ export function StationOverview({ currentStationData, stationId }: StationOvervi
       {/* Insight cards based on current data */}
       <View style={styles.grid}>
         <InsightCard
-          title="Temperature"
+          title={t('sensor.temperature')}
           value={`${temperatureInsight.value}°C`}
-          message={temperatureInsight.message}
+          message={t(`sensor.message.temperature.${temperatureInsight.status}`)}
           icon="thermometer-outline"
           type={temperatureInsight.status}
         />
         
         <InsightCard
-          title="Humidity"
+          title={t('sensor.humidity')}
           value={`${humidityInsight.value}%`}
-          message={humidityInsight.message}
+          message={t(`sensor.message.humidity.${humidityInsight.status}`)}
           icon="rainy-outline"
           type={humidityInsight.status}
         />
         
         <InsightCard
-          title="pH Level"
+          title={t('sensor.ph_level')}
           value={`${phInsight.value}`}
-          message={phInsight.message}
+          message={t(`sensor.message.ph.${phInsight.status}`)}
           icon="water-outline"
           type={phInsight.status}
         />
         
         <InsightCard
-          title="Soil Moisture"
+          title={t('sensor.soil_moisture')}
           value={`${moistureInsight.value}`}
-          message={moistureInsight.message}
+          message={t(`sensor.message.moisture.${moistureInsight.status}`)}
           icon="earth-outline"
           type={moistureInsight.status}
         />
         
         <InsightCard
-          title="Air Quality"
+          title={t('sensor.air_quality')}
           value={`${gasInsight.value} ppm`}
-          message={gasInsight.message}
+          message={t(`sensor.message.gas.${gasInsight.status}`)}
           icon="leaf-outline"
           type={gasInsight.status}
         />
 
         <InsightCard
-          title="Light Intensity"
+          title={t('sensor.light_intensity')}
           value={`${lightInsight.value} lux`}
-          message={lightInsight.message}
+          message={t(`sensor.message.light.${lightInsight.status}`)}
           icon="sunny-outline"
           type={lightInsight.status}
         />

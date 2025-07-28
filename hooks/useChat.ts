@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { apiService } from '@/services/api';
-import { getDeviceId } from '@/utils/deviceInfo';
 import { StationData } from '@/services/types';
+import { getDeviceId } from '@/utils/deviceInfo';
+import { useState } from 'react';
 
 export interface ChatMessage {
   id: string;
@@ -14,6 +15,15 @@ export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const { language, t } = useLanguage();
+
+  // Generate a new conversation ID
+  const generateConversationId = async (): Promise<string> => {
+    const baseDeviceId = await getDeviceId();
+    const timestamp = Date.now();
+    return `${baseDeviceId}-${timestamp}`;
+  };
 
   const sendMessage = async (message: string): Promise<void> => {
     try {
@@ -29,9 +39,14 @@ export function useChat() {
       };
       setMessages(prev => [...prev, userMessage]);
 
-      // Get device ID and send to API
-      const deviceId = await getDeviceId();
-      const response = await apiService.sendChatMessage(deviceId, message);
+      // Get or create conversation ID
+      let currentConversationId = conversationId;
+      if (!currentConversationId) {
+        currentConversationId = await generateConversationId();
+        setConversationId(currentConversationId);
+      }
+
+      const response = await apiService.sendChatMessage(currentConversationId, message);
 
       // Add AI response to chat
       const aiMessage: ChatMessage = {
@@ -51,21 +66,33 @@ export function useChat() {
   };
 
   const sendStationDataQuery = async (stationData: StationData[]): Promise<void> => {
-    // Get latest 10 data points
-    const latestData = stationData.slice(-10);
+    // Get latest 2 data points (reduced even further to save tokens)
+    const latestData = stationData.slice(-2);
     
-    // Create a message with station data
-    const dataMessage = `Please analyze my farm data: ${JSON.stringify(latestData.map(data => ({
-      device_id: data.device_id,
-      timestamp: data.timestamp,
-      temperature: data.data.temperature,
-      humidity: data.data.humidity,
-      soil_moisture: data.data.soil_moisture,
-      ph_value: data.data.ph_value,
-      gas_level: data.data.gas_level,
-      light_intensity: data.data.light_intensity,
-      prediction: data.prediction
-    })))}`;
+    // Create messages in the appropriate language
+    const summary = latestData.map((data, index) => {
+      const date = new Date(data.timestamp).toLocaleDateString();
+      
+      if (language === 'ne') {
+        return `रिडिंग ${index + 1} (${date}):
+तापक्रम: ${data.data.temperature}°C, आर्द्रता: ${data.data.humidity}%, माटो: ${data.data.soil_moisture}, pH: ${data.data.ph_value}, हावा: ${data.data.gas_level}ppm, प्रकाश: ${data.data.light_intensity}lux, स्कोर: ${data.prediction}%`;
+      } else {
+        return `Reading ${index + 1} (${date}):
+Temp: ${data.data.temperature}°C, Humidity: ${data.data.humidity}%, Soil: ${data.data.soil_moisture}, pH: ${data.data.ph_value}, Air: ${data.data.gas_level}ppm, Light: ${data.data.light_intensity}lux, Score: ${data.prediction}%`;
+      }
+    }).join('\n');
+
+    const dataMessage = language === 'ne' 
+      ? `मेरो खेतीको डाटा विश्लेषण गर्नुहोस् ${latestData[0]?.device_id} बाट:
+
+${summary}
+
+कृपया बालीको स्वास्थ्य र सिफारिसहरूमा संक्षिप्त जानकारी प्रदान गर्नुहोस्।`
+      : `Analyze my farm data from ${latestData[0]?.device_id}:
+
+${summary}
+
+Please provide brief insights on crop health and recommendations.`;
 
     await sendMessage(dataMessage);
   };
@@ -73,6 +100,7 @@ export function useChat() {
   const clearChat = () => {
     setMessages([]);
     setError(null);
+    setConversationId(null); // Reset conversation ID to start fresh
   };
 
   return {
@@ -81,6 +109,7 @@ export function useChat() {
     error,
     sendMessage,
     sendStationDataQuery,
-    clearChat
+    clearChat,
+    conversationId
   };
 }

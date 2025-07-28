@@ -1,5 +1,6 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrentStationData } from '@/hooks/useCurrentStationData';
 import { SensorEvaluator } from '@/utils/sensorEvaluator';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,34 +10,30 @@ import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-nat
 
 export function DashboardSummary() {
   const { currentData, uniqueStations, loading, error } = useCurrentStationData();
+  const { t } = useLanguage();
 
   if (loading) {
     return (
       <ThemedView style={styles.card}>
         <ActivityIndicator size="small" color="#007AFF" />
-        <ThemedText style={styles.loadingText}>Loading stations...</ThemedText>
+        <ThemedText style={styles.loadingText}>{t('common.loading')}</ThemedText>
       </ThemedView>
     );
   }
 
-  // Add more thorough validation
   if (error || !currentData || !currentData.data || uniqueStations.length === 0) {
     return (
       <ThemedView style={styles.card}>
         <Ionicons name="alert-circle-outline" size={20} color="red" />
         <ThemedText style={styles.errorText}>
-          {error || "No station data available"}
+          {error || t('dashboard.no_data')}
         </ThemedText>
       </ThemedView>
     );
   }
 
   const activeStations = uniqueStations.length;
-  
-  // Add safety checks for each data property
   const sensorData = currentData.data;
-  
-  // Only calculate insights if all required data is available
   let goodConditionsCount = 0;
   
   if (sensorData.temperature !== undefined) {
@@ -64,7 +61,7 @@ export function DashboardSummary() {
       <View style={styles.cardHeader}>
         <Ionicons name="analytics-outline" size={24} color="#007AFF" />
         <ThemedText type="defaultSemiBold" style={styles.cardTitle}>
-          Farm Overview
+          {t('dashboard.farm_overview')}
         </ThemedText>
       </View>
 
@@ -73,20 +70,22 @@ export function DashboardSummary() {
         <View style={styles.statBox}>
           <Ionicons name="hardware-chip-outline" size={20} color="#007AFF" />
           <ThemedText type="title" style={styles.statNumber}>{activeStations}</ThemedText>
-          <ThemedText style={styles.statLabel}>Active Stations</ThemedText>
+          <ThemedText style={styles.statLabel}>{t('dashboard.active_stations')}</ThemedText>
         </View>
 
         <View style={styles.statBox}>
           <Ionicons name="leaf-outline" size={20} color="#28C76F" />
           <ThemedText type="title" style={styles.statNumber}>{goodConditionsCount}</ThemedText>
-          <ThemedText style={styles.statLabel}>Good Conditions</ThemedText>
+          <ThemedText style={styles.statLabel}>{t('dashboard.good_conditions')}</ThemedText>
         </View>
       </TouchableOpacity>
 
       {/* Latest Station Info */}
       <TouchableOpacity style={styles.recentStation} onPress={handleViewDetails} activeOpacity={0.7}>
         <View style={styles.stationInfo}>
-          <ThemedText type="defaultSemiBold" style={styles.latestLabel}>Latest Update</ThemedText>
+          <ThemedText type="defaultSemiBold" style={styles.latestLabel}>
+            {t('dashboard.latest_update')}
+          </ThemedText>
           <ThemedText style={styles.stationName}>{currentData.device_id}</ThemedText>
           <ThemedText style={styles.timestamp}>
             {new Date(currentData.timestamp).toLocaleTimeString()}
@@ -97,7 +96,7 @@ export function DashboardSummary() {
 
       {/* CTA Button */}
       <TouchableOpacity style={styles.viewAllButton} onPress={handleViewDetails}>
-        <ThemedText style={styles.viewAllText}>View Full Dashboard</ThemedText>
+        <ThemedText style={styles.viewAllText}>{t('dashboard.view_full')}</ThemedText>
         <Ionicons name="arrow-forward" size={16} color="white" />
       </TouchableOpacity>
     </ThemedView>

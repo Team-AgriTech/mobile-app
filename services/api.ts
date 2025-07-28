@@ -63,6 +63,8 @@ class ApiService {
   // New chat API method
   async sendChatMessage(deviceId: string, message: string): Promise<string> {
     try {
+      console.log('Sending chat message:', { deviceId, messageLength: message.length });
+      
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: {
@@ -74,15 +76,29 @@ class ApiService {
         })
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Try to get error details from response
+        let errorText = 'Unknown server error';
+        try {
+          const errorBody = await response.text();
+          console.log('Error response body:', errorBody);
+          errorText = errorBody || `HTTP ${response.status}`;
+        } catch (e) {
+          console.log('Could not read error body');
+        }
+        
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
 
       // Response is markdown text
       const markdownResponse = await response.text();
+      console.log('Success response length:', markdownResponse.length);
       return markdownResponse;
     } catch (error) {
-      console.error('Chat API Error:', error);
+      console.error('Chat API Error details:', error);
       throw new Error('Failed to send chat message');
     }
   }
