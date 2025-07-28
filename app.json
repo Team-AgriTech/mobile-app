@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.madnip.mobileapp"
     },
     "web": {
       "bundler": "metro",
@@ -38,10 +39,14 @@
     "experiments": {
       "typedRoutes": true
     },
-    
     "expo": {
       "userInterfaceStyle": "light"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "92b479f7-54d0-47f2-8cc4-19bab4053796"
+      }
     }
-
   }
 }

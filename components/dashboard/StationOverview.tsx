@@ -1,127 +1,130 @@
 import { GraphCard } from '@/components/dashboard/Chart';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useAIInsights } from '@/hooks/useAIInsights';
-import { AIInsightResponse, StationData } from '@/services/types';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useHistoricalData } from '@/hooks/useHistoricalData';
+import { StationData } from '@/services/types';
+import { SensorEvaluator } from '@/utils/sensorEvaluator';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { router } from 'expo-router';
+import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { AIInsightsModal } from './AIInsightsModal';
 import { InsightCard } from './InsightCard';
 
 interface StationOverviewProps {
-  station: StationData;
+  currentStationData: StationData;
+  stationId: string;
 }
 
-export function StationOverview({ station }: StationOverviewProps) {
-  const [showAIModal, setShowAIModal] = useState(false);
-  const [aiInsights, setAiInsights] = useState<AIInsightResponse | null>(null);
-  const { getInsights, loading, error } = useAIInsights();
-
-  const getInsightType = (insight: string): 'good' | 'moderate' | 'warning' | 'danger' => {
-    const lowerInsight = insight.toLowerCase();
-    if (lowerInsight.includes('excellent') || lowerInsight.includes('ideal') || lowerInsight.includes('optimal')) {
-      return 'good';
-    }
-    if (lowerInsight.includes('moderate') || lowerInsight.includes('sufficient')) {
-      return 'moderate';
-    }
-    if (lowerInsight.includes('low') || lowerInsight.includes('high') || lowerInsight.includes('acidic')) {
-      return 'warning';
-    }
-    if (lowerInsight.includes('dry') || lowerInsight.includes('danger')) {
-      return 'danger';
-    }
-    return 'moderate';
-  };
+export function StationOverview({ currentStationData, stationId }: StationOverviewProps) {
+  const { t } = useLanguage();
+  const { historicalData, loading: historyLoading } = useHistoricalData(stationId);
 
   const handleConsultAI = async () => {
-    setShowAIModal(true);
-    const insights = await getInsights(station);
-    if (insights) {
-      setAiInsights(insights);
-    }
+    router.push({
+      pathname: '/chat',
+      params: {
+        stationData: JSON.stringify(historicalData.slice(-10)),
+        currentData: JSON.stringify(currentStationData)
+      }
+    });
   };
 
-  const handleCloseModal = () => {
-    setShowAIModal(false);
-    setAiInsights(null);
-  };
+  // Evaluate sensor data using current data for insights
+  const temperatureInsight = SensorEvaluator.evaluateTemperature(currentStationData.data.temperature);
+  const humidityInsight = SensorEvaluator.evaluateHumidity(currentStationData.data.humidity);
+  const phInsight = SensorEvaluator.evaluatePH(currentStationData.data.ph_value);
+  const moistureInsight = SensorEvaluator.evaluateSoilMoisture(currentStationData.data.soil_moisture);
+  const gasInsight = SensorEvaluator.evaluateGasLevel(currentStationData.data.gas_level);
+  const lightInsight = SensorEvaluator.evaluateLightIntensity(currentStationData.data.light_intensity);
 
   return (
     <ThemedView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.stationInfo}>
-          <ThemedText type="title" style = {styles.stationTitle} >{station.station_id}</ThemedText>
+          <ThemedText type="title" style={styles.stationTitle}>
+            {currentStationData.device_id}
+          </ThemedText>
           <ThemedText style={styles.timestamp}>
-            Updated: {new Date(station.timestamp).toLocaleString()}
+            {t('dashboard.updated')}: {new Date(currentStationData.timestamp).toLocaleString()}
+          </ThemedText>
+          <ThemedText style={styles.prediction}>
+            {t('dashboard.prediction_score')}: {currentStationData.prediction}%
           </ThemedText>
         </View>
         
         <TouchableOpacity 
           style={styles.aiButton}
           onPress={handleConsultAI}
-          disabled={loading}
         >
           <Ionicons name="sparkles" size={16} color="white" />
-          <ThemedText style={styles.aiButtonText}>Consult AI</ThemedText>
+          <ThemedText style={styles.aiButtonText}>{t('dashboard.consult_ai')}</ThemedText>
         </TouchableOpacity>
       </View>
 
-      <GraphCard/>
+      {/* Chart with historical data */}
+      <GraphCard 
+        historicalData={historicalData} 
+        loading={historyLoading}
+        stationId={stationId}
+      />
 
+      {/* Insight cards based on current data */}
       <View style={styles.grid}>
         <InsightCard
-          title="Air Quality"
-          value={station.insights.air_quality}
-          icon="leaf-outline"
-          type={getInsightType(station.insights.air_quality)}
-        />
-        
-        <InsightCard
-          title="Moisture"
-          value={station.insights.soil_condition}
-          icon="earth-outline"
-          type={getInsightType(station.insights.soil_condition)}
-        />
-        
-        <InsightCard
-          title="pH Status"
-          value={station.insights.water_ph_status}
-          icon="water-outline"
-          type={getInsightType(station.insights.water_ph_status)}
-        />
-        
-        <InsightCard
-          title="Temperature"
-          value={station.insights.temperature_status}
+          title={t('sensor.temperature')}
+          value={`${temperatureInsight.value}°C`}
+          message={t(`sensor.message.temperature.${temperatureInsight.status}`)}
           icon="thermometer-outline"
-          type={getInsightType(station.insights.temperature_status)}
+          type={temperatureInsight.status}
         />
         
         <InsightCard
-          title="Humidity"
-          value={station.insights.humidity_status}
+          title={t('sensor.humidity')}
+          value={`${humidityInsight.value}%`}
+          message={t(`sensor.message.humidity.${humidityInsight.status}`)}
           icon="rainy-outline"
-          type={getInsightType(station.insights.humidity_status)}
+          type={humidityInsight.status}
+        />
+        
+        <InsightCard
+          title={t('sensor.ph_level')}
+          value={`${phInsight.value}`}
+          message={t(`sensor.message.ph.${phInsight.status}`)}
+          icon="water-outline"
+          type={phInsight.status}
+        />
+        
+        <InsightCard
+          title={t('sensor.soil_moisture')}
+          value={`${moistureInsight.value}`}
+          message={t(`sensor.message.moisture.${moistureInsight.status}`)}
+          icon="earth-outline"
+          type={moistureInsight.status}
+        />
+        
+        <InsightCard
+          title={t('sensor.air_quality')}
+          value={`${gasInsight.value} ppm`}
+          message={t(`sensor.message.gas.${gasInsight.status}`)}
+          icon="leaf-outline"
+          type={gasInsight.status}
+        />
+
+        <InsightCard
+          title={t('sensor.light_intensity')}
+          value={`${lightInsight.value} lux`}
+          message={t(`sensor.message.light.${lightInsight.status}`)}
+          icon="sunny-outline"
+          type={lightInsight.status}
         />
       </View>
-
-      <AIInsightsModal
-        visible={showAIModal}
-        onClose={handleCloseModal}
-        insights={aiInsights}
-        loading={loading}
-        error={error}
-        stationId={station.station_id}
-      />
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   grid: {
-    // flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
@@ -144,6 +147,12 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     marginTop: 4,
   },
+  prediction: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 4,
+    color: '#007AFF',
+  },
   aiButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -165,6 +174,6 @@ const styles = StyleSheet.create({
   stationTitle: {
     fontSize: 25,
     fontWeight: 'bold',
-    textTransform:'capitalize'
+    textTransform: 'capitalize',
   },
 });

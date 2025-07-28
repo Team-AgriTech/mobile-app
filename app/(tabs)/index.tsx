@@ -4,13 +4,19 @@ import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { DashboardSummary } from '@/components/dashboard/DashboardSummary';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function HomeScreen() {
+  const { t } = useLanguage();
+
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <ThemedText type="title" style={styles.appTitle}>Agri-Tech</ThemedText>
+
+        <ThemedText type="title" style={styles.appTitle}>
+          {t('home.title')}
+        </ThemedText>
         <TouchableOpacity style={styles.notificationButton} activeOpacity={0.7}>
           <Ionicons name="notifications-outline" size={24} color="#007AFF" />
         </TouchableOpacity>
@@ -20,10 +26,10 @@ export default function HomeScreen() {
         {/* Welcome Card */}
         <View style={styles.welcomeCard}>
           <ThemedText type="title" style={styles.welcomeTitle}>
-            Welcome to Agri-Tech🌿
+            {t('home.welcome')}
           </ThemedText>
           <ThemedText type="default" style={styles.welcomeSubtitle}>
-            Monitor your farm stations in real-time and get meaningful insights.
+            {t('home.subtitle')}
           </ThemedText>
         </View>
 
@@ -34,7 +40,7 @@ export default function HomeScreen() {
         <View style={styles.infoCard}>
           <Ionicons name="analytics-outline" size={20} color="#007AFF" style={{ marginRight: 8 }} />
           <ThemedText type="default" style={styles.infoText}>
-            Go to the Dashboard tab for full analytics and reports.
+            {t('home.dashboard_info')}
           </ThemedText>
         </View>
       </ScrollView>
@@ -42,12 +48,13 @@ export default function HomeScreen() {
   );
 }
 
+// ... existing styles remain the same
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 30,
     paddingVertical: 10,
-    gap:10,
+    gap: 10,
     backgroundColor: '#F9FAFB',
   },
   header: {
@@ -71,41 +78,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   welcomeCard: {
-    marginHorizontal: 20,
-    marginBottom: 20,
+    backgroundColor: '#ffffff',
+    margin: 20,
     padding: 20,
     borderRadius: 16,
-    backgroundColor: '#ffffff',
-    elevation: 3,
+    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   welcomeTitle: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 24,
     marginBottom: 8,
-    color: '#0F172A',
+    color: '#1E293B',
   },
   welcomeSubtitle: {
     fontSize: 16,
-    color: '#475569',
+    color: '#64748B',
+    lineHeight: 22,
   },
   infoCard: {
-    marginHorizontal: 20,
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#E0F7FA',
     flexDirection: 'row',
     alignItems: 'center',
-    elevation: 2,
+    backgroundColor: '#EBF8FF',
+    margin: 20,
+    padding: 16,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#007AFF',
   },
   infoText: {
-    fontSize: 15,
-    color: '#334155',
     flex: 1,
-    flexWrap: 'wrap',
+    color: '#1E40AF',
+    lineHeight: 20,
   },
 });

@@ -1,9 +1,10 @@
-import React from 'react';
-import { Modal, View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { AIInsightResponse } from '@/services/types';
+import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface AIInsightsModalProps {
   visible: boolean;
@@ -22,6 +23,8 @@ export function AIInsightsModal({
   error, 
   stationId 
 }: AIInsightsModalProps) {
+  const { t } = useLanguage();
+  
   const getConfidenceColor = (score: number) => {
     if (score >= 0.8) return '#4CAF50';
     if (score >= 0.6) return '#FF9800';
@@ -39,20 +42,22 @@ export function AIInsightsModal({
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Ionicons name="sparkles" size={24} color="#007AFF" />
-            <ThemedText type="title" style={styles.title}>AI Insights</ThemedText>
+            <ThemedText type="title" style={styles.title}>{t('ai_insights.title')}</ThemedText>
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Ionicons name="close" size={24} color="#007AFF" />
           </TouchableOpacity>
         </View>
 
-        <ThemedText style={styles.stationName}>Station: {stationId}</ThemedText>
+        <ThemedText style={styles.stationName}>
+          {t('ai_insights.station')}: {stationId}
+        </ThemedText>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {loading && (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#007AFF" />
-              <ThemedText style={styles.loadingText}>AI is analyzing your data...</ThemedText>
+              <ThemedText style={styles.loadingText}>{t('ai_insights.analyzing')}</ThemedText>
             </View>
           )}
 
@@ -67,7 +72,7 @@ export function AIInsightsModal({
             <View style={styles.insightsContainer}>
               {/* Confidence Score */}
               <View style={styles.confidenceContainer}>
-                <ThemedText type="defaultSemiBold">Confidence Score</ThemedText>
+                <ThemedText type="defaultSemiBold">{t('ai_insights.confidence_score')}</ThemedText>
                 <View style={styles.confidenceScore}>
                   <ThemedText 
                     style={[styles.scoreText, { color: getConfidenceColor(insights.confidence_score) }]}
@@ -81,7 +86,9 @@ export function AIInsightsModal({
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Ionicons name="document-text-outline" size={20} color="#007AFF" />
-                  <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Summary</ThemedText>
+                  <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+                    {t('ai_insights.summary')}
+                  </ThemedText>
                 </View>
                 <ThemedText style={styles.sectionContent}>{insights.ai_insights.summary}</ThemedText>
               </View>
@@ -90,7 +97,9 @@ export function AIInsightsModal({
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Ionicons name="bulb-outline" size={20} color="#007AFF" />
-                  <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Recommendations</ThemedText>
+                  <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+                    {t('ai_insights.recommendations')}
+                  </ThemedText>
                 </View>
                 {insights.ai_insights.recommendations.map((rec, index) => (
                   <View key={index} style={styles.listItem}>
@@ -104,7 +113,9 @@ export function AIInsightsModal({
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Ionicons name="flag-outline" size={20} color="#FF9800" />
-                  <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Priority Actions</ThemedText>
+                  <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+                    {t('ai_insights.priority_actions')}
+                  </ThemedText>
                 </View>
                 {insights.ai_insights.priority_actions.map((action, index) => (
                   <View key={index} style={styles.priorityItem}>
@@ -117,7 +128,9 @@ export function AIInsightsModal({
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Ionicons name="shield-checkmark-outline" size={20} color="#4CAF50" />
-                  <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Risk Assessment</ThemedText>
+                  <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+                    {t('ai_insights.risk_assessment')}
+                  </ThemedText>
                 </View>
                 <ThemedText style={styles.sectionContent}>{insights.ai_insights.risk_assessment}</ThemedText>
               </View>
@@ -126,13 +139,15 @@ export function AIInsightsModal({
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Ionicons name="checkmark-circle-outline" size={20} color="#4CAF50" />
-                  <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Optimal Conditions</ThemedText>
+                  <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+                    {t('ai_insights.optimal_conditions')}
+                  </ThemedText>
                 </View>
                 <ThemedText style={styles.sectionContent}>{insights.ai_insights.optimal_conditions}</ThemedText>
               </View>
 
               <ThemedText style={styles.timestamp}>
-                Generated: {new Date(insights.timestamp).toLocaleString()}
+                {t('ai_insights.generated')}: {new Date(insights.timestamp).toLocaleString()}
               </ThemedText>
             </View>
           )}

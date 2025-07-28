@@ -1,37 +1,55 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useStationData } from '@/hooks/useStationData';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrentStationData } from '@/hooks/useCurrentStationData';
+import { SensorEvaluator } from '@/utils/sensorEvaluator';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export function DashboardSummary() {
-  const { data, loading, error } = useStationData();
+  const { currentData, uniqueStations, loading, error } = useCurrentStationData();
+  const { t } = useLanguage();
 
   if (loading) {
     return (
       <ThemedView style={styles.card}>
         <ActivityIndicator size="small" color="#007AFF" />
-        <ThemedText style={styles.loadingText}>Loading stations...</ThemedText>
+        <ThemedText style={styles.loadingText}>{t('common.loading')}</ThemedText>
       </ThemedView>
     );
   }
 
-  if (error || data.length === 0) {
+  if (error || !currentData || !currentData.data || uniqueStations.length === 0) {
     return (
       <ThemedView style={styles.card}>
         <Ionicons name="alert-circle-outline" size={20} color="red" />
-        <ThemedText style={styles.errorText}>No station data available</ThemedText>
+        <ThemedText style={styles.errorText}>
+          {error || t('dashboard.no_data')}
+        </ThemedText>
       </ThemedView>
     );
   }
 
-  const activeStations = data.length;
-  const goodConditions = data.filter(station =>
-    station.insights.air_quality.toLowerCase().includes('good') ||
-    station.insights.soil_condition.toLowerCase().includes('sufficient')
-  ).length;
+  const activeStations = uniqueStations.length;
+  const sensorData = currentData.data;
+  let goodConditionsCount = 0;
+  
+  if (sensorData.temperature !== undefined) {
+    const tempInsight = SensorEvaluator.evaluateTemperature(sensorData.temperature);
+    if (tempInsight.status === 'good') goodConditionsCount++;
+  }
+  
+  if (sensorData.gas_level !== undefined) {
+    const gasInsight = SensorEvaluator.evaluateGasLevel(sensorData.gas_level);
+    if (gasInsight.status === 'good') goodConditionsCount++;
+  }
+  
+  if (sensorData.soil_moisture !== undefined) {
+    const moistureInsight = SensorEvaluator.evaluateSoilMoisture(sensorData.soil_moisture);
+    if (moistureInsight.status === 'good') goodConditionsCount++;
+  }
 
   const handleViewDetails = () => {
     router.push('/dashboard');
@@ -43,7 +61,7 @@ export function DashboardSummary() {
       <View style={styles.cardHeader}>
         <Ionicons name="analytics-outline" size={24} color="#007AFF" />
         <ThemedText type="defaultSemiBold" style={styles.cardTitle}>
-          Farm Overview
+          {t('dashboard.farm_overview')}
         </ThemedText>
       </View>
 
@@ -52,23 +70,25 @@ export function DashboardSummary() {
         <View style={styles.statBox}>
           <Ionicons name="hardware-chip-outline" size={20} color="#007AFF" />
           <ThemedText type="title" style={styles.statNumber}>{activeStations}</ThemedText>
-          <ThemedText style={styles.statLabel}>Active Stations</ThemedText>
+          <ThemedText style={styles.statLabel}>{t('dashboard.active_stations')}</ThemedText>
         </View>
 
         <View style={styles.statBox}>
           <Ionicons name="leaf-outline" size={20} color="#28C76F" />
-          <ThemedText type="title" style={styles.statNumber}>{goodConditions}</ThemedText>
-          <ThemedText style={styles.statLabel}>Good Conditions</ThemedText>
+          <ThemedText type="title" style={styles.statNumber}>{goodConditionsCount}</ThemedText>
+          <ThemedText style={styles.statLabel}>{t('dashboard.good_conditions')}</ThemedText>
         </View>
       </TouchableOpacity>
 
       {/* Latest Station Info */}
       <TouchableOpacity style={styles.recentStation} onPress={handleViewDetails} activeOpacity={0.7}>
         <View style={styles.stationInfo}>
-          <ThemedText type="defaultSemiBold" style={styles.latestLabel}>Latest Update</ThemedText>
-          <ThemedText style={styles.stationName}>{data[0].station_id}</ThemedText>
+          <ThemedText type="defaultSemiBold" style={styles.latestLabel}>
+            {t('dashboard.latest_update')}
+          </ThemedText>
+          <ThemedText style={styles.stationName}>{currentData.device_id}</ThemedText>
           <ThemedText style={styles.timestamp}>
-            {new Date(data[0].timestamp).toLocaleTimeString()}
+            {new Date(currentData.timestamp).toLocaleTimeString()}
           </ThemedText>
         </View>
         <Ionicons name="chevron-forward" size={20} color="#007AFF" />
@@ -76,7 +96,7 @@ export function DashboardSummary() {
 
       {/* CTA Button */}
       <TouchableOpacity style={styles.viewAllButton} onPress={handleViewDetails}>
-        <ThemedText style={styles.viewAllText}>View Full Dashboard</ThemedText>
+        <ThemedText style={styles.viewAllText}>{t('dashboard.view_full')}</ThemedText>
         <Ionicons name="arrow-forward" size={16} color="white" />
       </TouchableOpacity>
     </ThemedView>
