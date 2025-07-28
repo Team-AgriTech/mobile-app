@@ -13,6 +13,7 @@ export default function HomeScreen() {
     <ThemedView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+
         <ThemedText type="title" style={styles.appTitle}>
           {t('home.title')}
         </ThemedText>
