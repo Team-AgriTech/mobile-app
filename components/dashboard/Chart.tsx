@@ -39,8 +39,8 @@ export function GraphCard({ historicalData, loading, stationId }: GraphCardProps
       return [];
     }
 
-    // Get the last 10 data points for better visualization
-    const recentData = historicalData.slice(-10);
+    // Get the last 5 data points for better visualization (reduced from 10)
+    const recentData = historicalData.slice(-5);
 
     return recentData.map(station => {
       const time = new Date(station.timestamp).toLocaleTimeString('en-US', { 

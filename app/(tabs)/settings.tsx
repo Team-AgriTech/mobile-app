@@ -18,55 +18,55 @@ export default function SettingsScreen() {
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
       headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-        />
+      <IconSymbol
+        size={310}
+        color="#808080"
+        name="gearshape" // Changed from "chevron.left.forwardslash.chevron.right" to "gearshape"
+      />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">{t('settings.title')}</ThemedText>
+      <ThemedText type="title">{t('settings.title')}</ThemedText>
       </ThemedView>
       
       <ThemedText style={styles.description}>
-        {t('settings.device_info')}
+      {t('settings.device_info')}
       </ThemedText>
 
       {/* Language Selection */}
       <ThemedView style={styles.section}>
-        <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-          {t('settings.language')}
+      <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+        {t('settings.language')}
+      </ThemedText>
+      
+      <View style={styles.languageOptions}>
+        <TouchableOpacity 
+        style={[styles.languageOption, language === 'en' && styles.activeOption]}
+        onPress={() => handleLanguageChange('en')}
+        >
+        <Ionicons 
+          name="checkmark-circle" 
+          size={20} 
+          color={language === 'en' ? '#007AFF' : '#ccc'} 
+        />
+        <ThemedText style={[styles.languageText, language === 'en' && styles.activeText]}>
+          {t('settings.english')}
         </ThemedText>
-        
-        <View style={styles.languageOptions}>
-          <TouchableOpacity 
-            style={[styles.languageOption, language === 'en' && styles.activeOption]}
-            onPress={() => handleLanguageChange('en')}
-          >
-            <Ionicons 
-              name="checkmark-circle" 
-              size={20} 
-              color={language === 'en' ? '#007AFF' : '#ccc'} 
-            />
-            <ThemedText style={[styles.languageText, language === 'en' && styles.activeText]}>
-              {t('settings.english')}
-            </ThemedText>
-          </TouchableOpacity>
+        </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.languageOption, language === 'ne' && styles.activeOption]}
-            onPress={() => handleLanguageChange('ne')}
-          >
-            <Ionicons 
-              name="checkmark-circle" 
-              size={20} 
-              color={language === 'ne' ? '#007AFF' : '#ccc'} 
-            />
-            <ThemedText style={[styles.languageText, language === 'ne' && styles.activeText]}>
-              {t('settings.nepali')}
-            </ThemedText>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity 
+        style={[styles.languageOption, language === 'ne' && styles.activeOption]}
+        onPress={() => handleLanguageChange('ne')}
+        >
+        <Ionicons 
+          name="checkmark-circle" 
+          size={20} 
+          color={language === 'ne' ? '#007AFF' : '#ccc'} 
+        />
+        <ThemedText style={[styles.languageText, language === 'ne' && styles.activeText]}>
+          {t('settings.nepali')}
+        </ThemedText>
+        </TouchableOpacity>
+      </View>
       </ThemedView>
     </ParallaxScrollView>
   );

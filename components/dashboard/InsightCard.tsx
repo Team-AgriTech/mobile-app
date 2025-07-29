@@ -18,23 +18,43 @@ export function InsightCard({ title, value, message, icon, type }: InsightCardPr
   const { t } = useLanguage();
 
   return (
-    <ThemedView style={[styles.card]}>
+    <ThemedView style={[styles.card, getCardStyle(type)]}>
       <View style={styles.header}>
-        <Ionicons name={icon} size={20} color={getIconColor(type)} style={styles.icon} />
-        <ThemedText type="defaultSemiBold" style={styles.title}>
+        <Ionicons name={icon} size={22} color={getIconColor(type)} style={styles.icon} />
+        <ThemedText type="defaultSemiBold" style={styles.title} numberOfLines={2}>
           {title}
         </ThemedText>
       </View>
+      
       <ThemedText type="title" style={styles.value}>
         {value}
       </ThemedText>
-      <ThemedText style={[styles.message, { color: getMessageColor(type) }]}>
+      
+      <ThemedText style={[styles.message, { color: getMessageColor(type) }]} numberOfLines={2}>
         {message}
       </ThemedText>
-      <StatusIndicator status={t(`status.${type}`)} type={type} />
+      
+      <View style={styles.statusContainer}>
+        <StatusIndicator status={t(`status.${type}`)} type={type} />
+      </View>
     </ThemedView>
   );
 }
+
+const getCardStyle = (type: InsightCardProps['type']) => {
+  switch (type) {
+    case 'good':
+      return { borderLeftColor: '#10B981', borderLeftWidth: 4 };
+    case 'moderate':
+      return { borderLeftColor: '#F59E0B', borderLeftWidth: 4 };
+    case 'warning':
+      return { borderLeftColor: '#F97316', borderLeftWidth: 4 };
+    case 'danger':
+      return { borderLeftColor: '#EF4444', borderLeftWidth: 4 };
+    default:
+      return { borderLeftColor: '#6B7280', borderLeftWidth: 4 };
+  }
+};
 
 const getIconColor = (type: InsightCardProps['type']) => {
   switch (type) {
@@ -70,9 +90,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    maxWidth: '48%',
     padding: 16,
-    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#E5E7EB',
     shadowColor: '#000',
@@ -80,30 +98,38 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
+    minHeight: 140, // Ensures consistent height
+    justifyContent: 'space-between',
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 8,
   },
   icon: {
     marginRight: 8,
+    marginTop: 2, // Slight adjustment for better alignment
   },
   title: {
     fontSize: 14,
     fontWeight: '600',
     color: '#111827',
-    flexShrink: 1,
+    flex: 1, // Takes remaining space
+    lineHeight: 18,
   },
   value: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 6,
     color: '#1F2937',
   },
   message: {
     fontSize: 12,
-    marginBottom: 8,
     lineHeight: 16,
+    flex: 1, // Takes remaining space
+    marginBottom: 8,
+  },
+  statusContainer: {
+    alignItems: 'flex-start',
   },
 });

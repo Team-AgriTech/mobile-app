@@ -25,7 +25,7 @@ export function useChat() {
     return `${baseDeviceId}-${timestamp}`;
   };
 
-  const sendMessage = async (message: string): Promise<void> => {
+  const sendMessage = async (message: string, resetContext: boolean = false): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
@@ -39,9 +39,9 @@ export function useChat() {
       };
       setMessages(prev => [...prev, userMessage]);
 
-      // Get or create conversation ID
+      // Generate conversation ID if needed or if reset requested
       let currentConversationId = conversationId;
-      if (!currentConversationId) {
+      if (!currentConversationId || resetContext) {
         currentConversationId = await generateConversationId();
         setConversationId(currentConversationId);
       }

@@ -138,6 +138,9 @@ const translations = {
     'ai_insights.optimal_conditions': 'Optimal Conditions',
     'ai_insights.generated': 'Generated',
 
+    'chat.ai_thinking': 'AI is thinking...',
+
+
 
   },
   ne: {
@@ -267,6 +270,9 @@ const translations = {
     'ai_insights.risk_assessment': 'जोखिम मूल्याङ्कन',
     'ai_insights.optimal_conditions': 'इष्टतम अवस्थाहरू',
     'ai_insights.generated': 'उत्पन्न गरिएको',
+
+    'chat.ai_thinking': 'AI सोचिरहेको छ...',
+
 
   }
 };

@@ -8,8 +8,10 @@ import { SensorEvaluator } from '@/utils/sensorEvaluator';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { InsightCard } from './InsightCard';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 interface StationOverviewProps {
   currentStationData: StationData;
@@ -24,7 +26,7 @@ export function StationOverview({ currentStationData, stationId }: StationOvervi
     router.push({
       pathname: '/chat',
       params: {
-        stationData: JSON.stringify(historicalData.slice(-10)),
+        stationData: JSON.stringify(historicalData.slice(-5)), // Reduced from 10 to 5
         currentData: JSON.stringify(currentStationData)
       }
     });
@@ -69,83 +71,115 @@ export function StationOverview({ currentStationData, stationId }: StationOvervi
         stationId={stationId}
       />
 
-      {/* Insight cards based on current data */}
-      <View style={styles.grid}>
-        <InsightCard
-          title={t('sensor.temperature')}
-          value={`${temperatureInsight.value}°C`}
-          message={t(`sensor.message.temperature.${temperatureInsight.status}`)}
-          icon="thermometer-outline"
-          type={temperatureInsight.status}
-        />
+      {/* Insight cards with improved grid layout */}
+      <View style={styles.insightsContainer}>
+        <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+          {t('dashboard.sensor_insights')}
+          {t('Sensor Insights')}
+        </ThemedText>
         
-        <InsightCard
-          title={t('sensor.humidity')}
-          value={`${humidityInsight.value}%`}
-          message={t(`sensor.message.humidity.${humidityInsight.status}`)}
-          icon="rainy-outline"
-          type={humidityInsight.status}
-        />
-        
-        <InsightCard
-          title={t('sensor.ph_level')}
-          value={`${phInsight.value}`}
-          message={t(`sensor.message.ph.${phInsight.status}`)}
-          icon="water-outline"
-          type={phInsight.status}
-        />
-        
-        <InsightCard
-          title={t('sensor.soil_moisture')}
-          value={`${moistureInsight.value}`}
-          message={t(`sensor.message.moisture.${moistureInsight.status}`)}
-          icon="earth-outline"
-          type={moistureInsight.status}
-        />
-        
-        <InsightCard
-          title={t('sensor.air_quality')}
-          value={`${gasInsight.value} ppm`}
-          message={t(`sensor.message.gas.${gasInsight.status}`)}
-          icon="leaf-outline"
-          type={gasInsight.status}
-        />
+        <View style={styles.grid}>
+          <View style={styles.cardWrapper}>
+            <InsightCard
+              title={t('sensor.temperature')}
+              value={`${temperatureInsight.value}°C`}
+              message={t(`sensor.message.temperature.${temperatureInsight.status}`)}
+              icon="thermometer-outline"
+              type={temperatureInsight.status}
+            />
+          </View>
+          
+          <View style={styles.cardWrapper}>
+            <InsightCard
+              title={t('sensor.humidity')}
+              value={`${humidityInsight.value}%`}
+              message={t(`sensor.message.humidity.${humidityInsight.status}`)}
+              icon="rainy-outline"
+              type={humidityInsight.status}
+            />
+          </View>
+          
+          <View style={styles.cardWrapper}>
+            <InsightCard
+              title={t('sensor.ph_level')}
+              value={`${phInsight.value}`}
+              message={t(`sensor.message.ph.${phInsight.status}`)}
+              icon="water-outline"
+              type={phInsight.status}
+            />
+          </View>
+          
+          <View style={styles.cardWrapper}>
+            <InsightCard
+              title={t('sensor.soil_moisture')}
+              value={`${moistureInsight.value}`}
+              message={t(`sensor.message.moisture.${moistureInsight.status}`)}
+              icon="earth-outline"
+              type={moistureInsight.status}
+            />
+          </View>
+          
+          <View style={styles.cardWrapper}>
+            <InsightCard
+              title={t('sensor.air_quality')}
+              value={`${gasInsight.value} ppm`}
+              message={t(`sensor.message.gas.${gasInsight.status}`)}
+              icon="leaf-outline"
+              type={gasInsight.status}
+            />
+          </View>
 
-        <InsightCard
-          title={t('sensor.light_intensity')}
-          value={`${lightInsight.value} lux`}
-          message={t(`sensor.message.light.${lightInsight.status}`)}
-          icon="sunny-outline"
-          type={lightInsight.status}
-        />
+          <View style={styles.cardWrapper}>
+            <InsightCard
+              title={t('sensor.light_intensity')}
+              value={`${lightInsight.value} lux`}
+              message={t(`sensor.message.light.${lightInsight.status}`)}
+              icon="sunny-outline"
+              type={lightInsight.status}
+            />
+          </View>
+        </View>
       </View>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
   stationInfo: {
     flex: 1,
+  },
+  stationTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textTransform: 'capitalize',
+    color: '#1F2937',
   },
   timestamp: {
     fontSize: 12,
     opacity: 0.7,
     marginTop: 4,
+    color: '#6B7280',
   },
   prediction: {
     fontSize: 14,
@@ -171,9 +205,24 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 12,
   },
-  stationTitle: {
-    fontSize: 25,
-    fontWeight: 'bold',
-    textTransform: 'capitalize',
+  insightsContainer: {
+    marginTop: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+    color: '#1F2937',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginHorizontal: -6, // Negative margin to account for cardWrapper padding
+  },
+  cardWrapper: {
+    width: '48%', // Ensures exactly 2 cards per row with proper spacing
+    marginBottom: 12,
+    paddingHorizontal: 6, // Horizontal padding for spacing between cards
   },
 });

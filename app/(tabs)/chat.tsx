@@ -303,7 +303,7 @@ import { useChat } from "@/hooks/useChat";
 import { StationData } from "@/services/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -322,33 +322,67 @@ export default function ChatScreen() {
   const [inputText, setInputText] = useState('');
   const [initialStationData, setInitialStationData] = useState<StationData[] | null>(null);
   const params = useLocalSearchParams();
+  
+  // Add ref for FlatList
+  const flatListRef = useRef<FlatList>(null);
 
   // Parse and store station data on mount
   useEffect(() => {
-    if (params.stationData) {
-      try {
-        const stationData: StationData[] = JSON.parse(params.stationData as string);
-        setInitialStationData(stationData);
-        sendStationDataQuery(stationData);
-      } catch (error) {
-        console.error('Error parsing station data:', error);
+    const handleStationData = async () => {
+      if (params.stationData) {
+        try {
+          const stationData: StationData[] = JSON.parse(params.stationData as string);
+          setInitialStationData(stationData);
+          await sendStationDataQuery(stationData);
+        } catch (error) {
+          console.error('Error parsing station data:', error);
+          // Handle error properly - don't use setError here as it's from useChat
+        }
       }
-    }
+    };
+
+    handleStationData();
   }, [params.stationData]);
+
+  // Auto-scroll when messages change
+  useEffect(() => {
+    if (messages.length > 0 && flatListRef.current) {
+      // Small delay to ensure the message is rendered before scrolling
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
+
+  // Auto-scroll when loading state changes (when AI starts/stops responding)
+  useEffect(() => {
+    if (!loading && messages.length > 0 && flatListRef.current) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [loading]);
 
   const handleSend = async () => {
     if (inputText.trim()) {
       await sendMessage(inputText.trim());
       setInputText('');
+      
+      // Scroll to bottom after sending message
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
     }
   };
 
-  const handleClearAndConsult = () => {
-    clearChat();
-    if (initialStationData) {
-      setTimeout(() => {
-        sendStationDataQuery(initialStationData);
-      }, 100);
+  const handleClearAndConsult = async () => {
+    try {
+      clearChat();
+      if (initialStationData) {
+        await sendStationDataQuery(initialStationData);
+      }
+    } catch (error) {
+      console.error('Error in handleClearAndConsult:', error);
     }
   };
 
@@ -384,6 +418,7 @@ export default function ChatScreen() {
     <KeyboardAvoidingView 
       style={styles.container} 
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       <ThemedView style={styles.header}>
         <View style={styles.headerContent}>
@@ -410,12 +445,41 @@ export default function ChatScreen() {
         </ThemedView>
       ) : (
         <FlatList
+          ref={flatListRef}
           data={messages}
           renderItem={renderMessage}
           keyExtractor={(item) => item.id}
           style={styles.messagesList}
           contentContainerStyle={styles.messagesContainer}
+          showsVerticalScrollIndicator={false}
+          // Additional props for better scrolling behavior
+          onContentSizeChange={() => {
+            // Scroll to end when content size changes (new messages)
+            flatListRef.current?.scrollToEnd({ animated: true });
+          }}
+          onLayout={() => {
+            // Scroll to end when FlatList layout changes
+            if (messages.length > 0) {
+              flatListRef.current?.scrollToEnd({ animated: true });
+            }
+          }}
+          // Maintain scroll position at bottom
+          maintainVisibleContentPosition={{
+            minIndexForVisible: 0,
+            autoscrollToTopThreshold: 10,
+          }}
         />
+      )}
+
+      {/* Loading indicator for AI response */}
+      {loading && (
+        <View style={styles.loadingIndicator}>
+          <ActivityIndicator size="small" color="#007AFF" />
+          <ThemedText style={styles.loadingText}>
+            {t('chat.ai_thinking')}
+            {t('AI is thinking...')}
+          </ThemedText>
+        </View>
       )}
 
       {error && (
@@ -433,6 +497,8 @@ export default function ChatScreen() {
           placeholder={t('chat.placeholder')}
           multiline
           maxLength={500}
+          // Auto-focus for better UX
+          autoFocus={false}
         />
         <TouchableOpacity 
           onPress={handleSend} 
@@ -509,6 +575,8 @@ const styles = StyleSheet.create({
   },
   messagesContainer: {
     padding: 16,
+    // Add some bottom padding for better scrolling
+    paddingBottom: 20,
   },
   messageContainer: {
     marginBottom: 16,
@@ -542,6 +610,22 @@ const styles = StyleSheet.create({
   },
   markdownContainer: {
     // Let it expand naturally
+  },
+  // New loading indicator style
+  loadingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    backgroundColor: '#f8f9fa',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  loadingText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
   },
   errorContainer: {
     flexDirection: 'row',
