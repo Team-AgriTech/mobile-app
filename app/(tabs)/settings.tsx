@@ -76,8 +76,11 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+    paddingTop:10,
+    paddingBottom:7,
     marginBottom: 16,
+    marginTop:10
   },
   description: {
     marginBottom: 32,

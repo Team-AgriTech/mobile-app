@@ -14,32 +14,39 @@ export function useCurrentStationData(refreshInterval: number = 30000) {
       setLoading(true);
       setError(null);
       
-      // Get current data for insights
-      const response = await apiService.getCurrentData();
+      // Get all station data and find the most recent one
+      const allStationData = await apiService.getStationData();
       
-      // Handle the case where API returns an array instead of a single object
-      let current: StationData | null = null;
-      
-      if (Array.isArray(response)) {
-        // API returned an array, take the first item
-        current = response.length > 0 ? response[0] : null;
-      } else {
-        // API returned a single object
-        current = response;
-      }
-      
-      if (current && current.data) {
-        setCurrentData(current);
-      } else {
-        setError('Invalid data format received from API');
+      if (!Array.isArray(allStationData) || allStationData.length === 0) {
+        setError('No station data available');
         return;
       }
+
+      // Sort by timestamp and get the most recent data
+      const sortedData = allStationData.sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
       
-      // Get unique stations list
-      const stations = await apiService.getUniqueStations();
-      setUniqueStations(stations);
+      const mostRecentData = sortedData[0];
       
-      setLastUpdated(new Date());
+      if (mostRecentData && mostRecentData.data) {
+        setCurrentData(mostRecentData);
+        
+        // Get unique stations from the same data source
+        const stationIds = [...new Set(allStationData.map(station => station.device_id))];
+        setUniqueStations(stationIds);
+        
+        setLastUpdated(new Date());
+        
+        console.log('Updated with most recent data:', {
+          stationId: mostRecentData.device_id,
+          timestamp: mostRecentData.timestamp,
+          temperature: mostRecentData.data.temperature
+        });
+      } else {
+        setError('Invalid data format received from API');
+      }
+      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
