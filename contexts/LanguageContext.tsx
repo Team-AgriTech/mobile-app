@@ -36,7 +36,7 @@ const translations = {
     'dashboard.no_data': 'No station data available',
     'dashboard.consult_ai': 'Consult AI',
     'dashboard.updated': 'Updated',
-    'dashboard.prediction_score': 'Prediction Score',
+    'dashboard.prediction_score': 'Fire Prediction Score',
     
     // Sensor Labels
     'sensor.temperature': 'Temperature',
@@ -166,7 +166,7 @@ const translations = {
     'dashboard.no_data': 'कुनै स्टेशन डाटा उपलब्ध छैन',
     'dashboard.consult_ai': 'AI सल्लाह लिनुहोस्',
     'dashboard.updated': 'अपडेट गरिएको',
-    'dashboard.prediction_score': 'भविष्यवाणी स्कोर',
+    'dashboard.prediction_score': 'आगलागी भविष्यवाणी स्कोर',
     
     // Sensor Labels
     'sensor.temperature': 'तापक्रम',

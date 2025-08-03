@@ -83,7 +83,7 @@ Temp: ${data.data.temperature}°C, Humidity: ${data.data.humidity}%, Soil: ${dat
     }).join('\n');
 
     const dataMessage = language === 'ne' 
-      ? `Please talk in english I don't understand nepali मेरो खेतीको डाटा विश्लेषण गर्नुहोस् ${latestData[0]?.device_id} बाट:
+      ? `Please talk in nepali I don't understand english मेरो खेतीको डाटा विश्लेषण गर्नुहोस् ${latestData[0]?.device_id} बाट:
 
 ${summary}
 

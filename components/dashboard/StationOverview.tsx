@@ -18,6 +18,15 @@ interface StationOverviewProps {
   stationId: string;
 }
 
+// Risk level configuration
+const RISK_LEVELS = {
+  0: { text: "No Risk", color: "#2196F3", emoji: "🔵" },
+  1: { text: "Low Risk", color: "#4CAF50", emoji: "🟢" },
+  2: { text: "Moderate Risk", color: "#FF9800", emoji: "🟡" },
+  3: { text: "High Risk", color: "#FF5722", emoji: "🟠" },
+  4: { text: "Extreme Risk", color: "#F44336", emoji: "🔴" }
+};
+
 export function StationOverview({ currentStationData, stationId }: StationOverviewProps) {
   const { t } = useLanguage();
   const { historicalData, loading: historyLoading } = useHistoricalData(stationId);
@@ -26,11 +35,20 @@ export function StationOverview({ currentStationData, stationId }: StationOvervi
     router.push({
       pathname: '/chat',
       params: {
-        stationData: JSON.stringify(historicalData.slice(-5)), // Reduced from 10 to 5
+        stationData: JSON.stringify(historicalData.slice(-5)),
         currentData: JSON.stringify(currentStationData)
       }
     });
   };
+
+  // Get risk level info
+  const getRiskLevel = (prediction: number) => {
+    // Ensure prediction is within valid range
+    const riskLevel = Math.max(0, Math.min(4, Math.floor(prediction)));
+    return RISK_LEVELS[riskLevel as keyof typeof RISK_LEVELS] || RISK_LEVELS[0];
+  };
+
+  const riskInfo = getRiskLevel(currentStationData.prediction);
 
   // Evaluate sensor data using current data for insights
   const temperatureInsight = SensorEvaluator.evaluateTemperature(currentStationData.data.temperature);
@@ -50,9 +68,19 @@ export function StationOverview({ currentStationData, stationId }: StationOvervi
           <ThemedText style={styles.timestamp}>
             {t('dashboard.updated')}: {new Date(currentStationData.timestamp).toLocaleString()}
           </ThemedText>
-          <ThemedText style={styles.prediction}>
-            {t('dashboard.prediction_score')}: {currentStationData.prediction}%
-          </ThemedText>
+          <View style={styles.predictionContainer}>
+            <ThemedText style={styles.predictionLabel}>
+              {t('dashboard.prediction_score')}:
+            </ThemedText>
+            <View style={[styles.predictionBadge, { backgroundColor: riskInfo.color }]}>
+              <ThemedText style={styles.predictionEmoji}>
+                {riskInfo.emoji}
+              </ThemedText>
+              <ThemedText style={styles.predictionText}>
+                {riskInfo.text}
+              </ThemedText>
+            </View>
+          </View>
         </View>
         
         <TouchableOpacity 
@@ -75,7 +103,6 @@ export function StationOverview({ currentStationData, stationId }: StationOvervi
       <View style={styles.insightsContainer}>
         <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
           {t('dashboard.sensor_insights')}
-          {t('Sensor Insights')}
         </ThemedText>
         
         <View style={styles.grid}>
@@ -181,11 +208,37 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: '#6B7280',
   },
-  prediction: {
+  predictionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  predictionLabel: {
     fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+    marginRight: 8,
+  },
+  predictionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  predictionEmoji: {
+    fontSize: 12,
+    marginRight: 4,
+  },
+  predictionText: {
+    color: 'white',
+    fontSize: 12,
     fontWeight: '600',
-    marginTop: 4,
-    color: '#007AFF',
   },
   aiButton: {
     flexDirection: 'row',
@@ -218,11 +271,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginHorizontal: -6, // Negative margin to account for cardWrapper padding
+    marginHorizontal: -6,
   },
   cardWrapper: {
-    width: '48%', // Ensures exactly 2 cards per row with proper spacing
+    width: '48%',
     marginBottom: 12,
-    paddingHorizontal: 6, // Horizontal padding for spacing between cards
+    paddingHorizontal: 6,
   },
 });

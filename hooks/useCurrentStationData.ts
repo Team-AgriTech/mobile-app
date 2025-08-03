@@ -1,4 +1,4 @@
-import { apiService } from '@/services/api';
+import { useHistoricalData } from '@/hooks/useHistoricalData';
 import { StationData } from '@/services/types';
 import { useEffect, useState } from 'react';
 
@@ -9,60 +9,57 @@ export function useCurrentStationData(refreshInterval: number = 30000) {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const fetchCurrentData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Get all station data and find the most recent one
-      const allStationData = await apiService.getStationData();
-      
-      if (!Array.isArray(allStationData) || allStationData.length === 0) {
-        setError('No station data available');
-        return;
-      }
+  // Get historical data for the station (assuming single station for now)
+  // You can pass the station ID here - for now using a default or get from API
+  const { historicalData, loading: historyLoading, error: historyError } = useHistoricalData('station-01');
 
-      // Sort by timestamp and get the most recent data
-      const sortedData = allStationData.sort((a, b) => 
+  useEffect(() => {
+    if (historyLoading) {
+      setLoading(true);
+      return;
+    }
+
+    if (historyError) {
+      setError(historyError);
+      setLoading(false);
+      return;
+    }
+
+    if (historicalData && historicalData.length > 0) {
+      // Sort by timestamp and get the most recent data (latest first)
+      const sortedData = [...historicalData].sort((a, b) => 
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
       
       const mostRecentData = sortedData[0];
       
-      if (mostRecentData && mostRecentData.data) {
-        setCurrentData(mostRecentData);
-        
-        // Get unique stations from the same data source
-        const stationIds = [...new Set(allStationData.map(station => station.device_id))];
-        setUniqueStations(stationIds);
-        
-        setLastUpdated(new Date());
-        
-        console.log('Updated with most recent data:', {
-          stationId: mostRecentData.device_id,
-          timestamp: mostRecentData.timestamp,
-          temperature: mostRecentData.data.temperature
-        });
-      } else {
-        setError('Invalid data format received from API');
-      }
+      setCurrentData(mostRecentData);
       
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(errorMessage);
-      console.error('Error fetching current data:', errorMessage);
-    } finally {
-      setLoading(false);
+      // Get unique stations from historical data
+      const stationIds = [...new Set(historicalData.map(station => station.device_id))];
+      setUniqueStations(stationIds);
+      
+      setLastUpdated(new Date());
+      setError(null);
+      
+      console.log('✅ Updated with LATEST HISTORICAL data:', {
+        stationId: mostRecentData.device_id,
+        timestamp: mostRecentData.timestamp,
+        temperature: mostRecentData.data.temperature,
+        totalDataPoints: historicalData.length,
+        fetchTime: new Date().toISOString()
+      });
+    } else {
+      setError('No historical data available');
     }
-  };
-
-  useEffect(() => {
-    fetchCurrentData();
     
-    // Set up auto-refresh
-    const interval = setInterval(fetchCurrentData, refreshInterval);
-    return () => clearInterval(interval);
-  }, [refreshInterval]);
+    setLoading(false);
+  }, [historicalData, historyLoading, historyError]);
+
+  const refresh = () => {
+    // The refresh will be handled by the historical data hook
+    setLastUpdated(new Date());
+  };
 
   return {
     currentData,
@@ -70,6 +67,6 @@ export function useCurrentStationData(refreshInterval: number = 30000) {
     loading,
     error,
     lastUpdated,
-    refresh: fetchCurrentData
+    refresh
   };
 }
