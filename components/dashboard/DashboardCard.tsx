@@ -3,10 +3,22 @@ import { ThemedView } from '@/components/ThemedView';
 import { StationOverview } from '@/components/dashboard/StationOverview';
 import { useCurrentStationData } from '@/hooks/useCurrentStationData';
 import React from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
 
 export default function DashboardScreen() {
-  const { currentData, uniqueStations, loading, error, lastUpdated, refresh } = useCurrentStationData();
+  const {
+    currentData,
+    uniqueStations,
+    loading,
+    error,
+    lastUpdated,
+    refresh,
+  } = useCurrentStationData();
 
   if (loading && !currentData) {
     return (
@@ -38,7 +50,7 @@ export default function DashboardScreen() {
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.header}>
-        <ThemedText type="title">Farm Dashboard</ThemedText>
+        <ThemedText type="title" style={styles.farmText}>Farm Dashboard</ThemedText>
         {lastUpdated && (
           <ThemedText style={styles.lastUpdated}>
             Last updated: {lastUpdated.toLocaleTimeString()}
@@ -51,11 +63,11 @@ export default function DashboardScreen() {
           <RefreshControl refreshing={loading} onRefresh={refresh} />
         }
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
-        {/* Show one StationOverview per unique station */}
         {uniqueStations.map((stationId) => (
-          <StationOverview 
-            key={stationId} 
+          <StationOverview
+            key={stationId}
             currentStationData={currentData}
             stationId={stationId}
           />
@@ -68,22 +80,39 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F9F9F9', // light background
     paddingTop: 50,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
     gap: 16,
+    backgroundColor: '#FFFFFF',
   },
   header: {
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#DDDDDD',
+    backgroundColor: '#FFFFFF',
+    elevation: 2, // Android shadow
+    shadowColor: '#000', // iOS shadow
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   lastUpdated: {
     fontSize: 12,
-    opacity: 0.7,
+    color: '#555555',
     marginTop: 4,
   },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  farmText:{
+    color:'black'
+  }
 });

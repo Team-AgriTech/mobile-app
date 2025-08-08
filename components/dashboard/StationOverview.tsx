@@ -175,6 +175,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    marginTop:10,
     backgroundColor: '#FFFFFF',
     marginBottom: 16,
     borderRadius: 16,
